@@ -3,7 +3,7 @@
 <img width="1335" height="749" alt="image" src="https://github.com/user-attachments/assets/0d669c04-a1d9-43c5-9a12-9650c6cd6aa7" />
 
 
-**Alfheim** is a C++ toolset that extends **Voxel Plugin Free Legacy** to help create procedural voxel biomes and PCG-driven scenes. It’s an early work-in-progress that aims to give you Valheim-style terrain and biome feel: large organic islands, rolling hills, mountains and plains, with point and spline-driven modifiers layered onto the voxel landscape.
+**Alfheim** is a C++ toolset that extends **Voxel Plugin Free Legacy** to help create procedural voxel biomes and PCG-driven scenes. It’s an early work-in-progress that aims to give you Valheim-style terrain and biome feel: large organic islands, rolling hills, mountains and plains... and with point and spline-driven modifiers layered onto the voxel landscape (coming soon).
 
 ---
 
@@ -53,3 +53,4 @@
 
 
 ---
+
