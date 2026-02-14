@@ -1,4 +1,5 @@
-# Alfheim for Voxel Plugin Free Legacy, by Lost Crow Dev
+# Alfheim for Voxel Plugin Free Legacy
+## Lost Crow Dev
 
 <img width="1335" height="749" alt="image" src="https://github.com/user-attachments/assets/ebf8a180-d194-4f1a-a1d6-7957290f484e" />
 
@@ -107,4 +108,5 @@ public class VoxelPluginPCG : ModuleRules
         PrivateDependencyModuleNames.AddRange(new string[] { });
     }
 }
+
 
