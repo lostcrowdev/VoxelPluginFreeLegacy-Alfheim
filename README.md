@@ -1,5 +1,7 @@
 # Alfheim for Voxel Plugin Free Legacy, by Lost Crow Dev
 
+<img width="1335" height="749" alt="image" src="https://github.com/user-attachments/assets/ebf8a180-d194-4f1a-a1d6-7957290f484e" />
+
 **Alfheim** is a C++ toolset that extends **Voxel Plugin (Free, Legacy)** to help create procedural voxel biomes and PCG-driven scenes. It’s an early work-in-progress that aims to give you Valheim-style terrain and biome feel: large organic islands, rolling hills, mountains and plains, with point and spline-driven modifiers layered onto the voxel landscape.
 
 ---
@@ -105,3 +107,4 @@ public class VoxelPluginPCG : ModuleRules
         PrivateDependencyModuleNames.AddRange(new string[] { });
     }
 }
+
