@@ -15,7 +15,8 @@
 
 ## What’s included
 
-* An **example map** and an **example voxel graph** (the “Alfheim” voxel graph).
+- * An **example map** and an **example voxel graph** (the “Alfheim” voxel graph).
+- Example materials.
 
 ---
 
