@@ -37,6 +37,14 @@ public:
 		const float Island_Radius;
 		const float Island_Falloff_Distance;
 		const float Island_Falloff_Strength;
+		const bool Enable_Beach_Plateau;
+		const float Beach_Plateau_Target_Height;
+		const float Beach_Plateau_Height_Range;
+		const float Beach_Plateau_Blend_Strength;
+		const bool Enable_Mountain_Plateau;
+		const float Mountain_Plateau_Target_Height;
+		const float Mountain_Plateau_Height_Range;
+		const float Mountain_Plateau_Blend_Strength;
 	};
 	
 	class FLocalComputeStruct_LocalValue
@@ -241,6 +249,35 @@ public:
 			v_flt Variable_7; // 2D Noise SDF.- output 0
 			Variable_7 = Variable_4 - BufferXY.Variable_0;
 			
+			// BEACH PLATEAU: Two-sided. Flattens terrain near the target height toward it.
+			// Works well with a small Height Range so it only affects the narrow shoreline band.
+			if (Params.Enable_Beach_Plateau)
+			{
+				v_flt TerrainHeight = BufferXY.Variable_0;
+				v_flt HeightDiff = FMath::Abs(TerrainHeight - v_flt(Params.Beach_Plateau_Target_Height));
+				v_flt BeachBlend = v_flt(1.0f) - FVoxelMathNodeFunctions::SmoothStep(v_flt(0.0f), v_flt(Params.Beach_Plateau_Height_Range), HeightDiff);
+				BeachBlend = FMath::Pow(BeachBlend, Params.Beach_Plateau_Blend_Strength);
+				Variable_7 = Variable_7 + BeachBlend * (TerrainHeight - v_flt(Params.Beach_Plateau_Target_Height));
+			}
+			
+			// MOUNTAIN PLATEAU: One-sided. Only activates when terrain is ABOVE the target height.
+			// Pulls peaks DOWN toward the target. Never affects terrain below the target,
+			// so beaches and plains are completely untouched regardless of Height Range.
+			if (Params.Enable_Mountain_Plateau)
+			{
+				v_flt TerrainHeight = BufferXY.Variable_0;
+				if (TerrainHeight > v_flt(Params.Mountain_Plateau_Target_Height))
+				{
+					// How far above the target this terrain is (always positive here)
+					v_flt HeightAbove = TerrainHeight - v_flt(Params.Mountain_Plateau_Target_Height);
+					// Blend: 1.0 just above target, fading to 0.0 at HeightAbove == Range
+					v_flt MountainBlend = v_flt(1.0f) - FVoxelMathNodeFunctions::SmoothStep(v_flt(0.0f), v_flt(Params.Mountain_Plateau_Height_Range), HeightAbove);
+					MountainBlend = FMath::Pow(MountainBlend, Params.Mountain_Plateau_Blend_Strength);
+					// HeightAbove is always positive, so this always pushes terrain DOWN toward target
+					Variable_7 = Variable_7 + MountainBlend * HeightAbove;
+				}
+			}
+			
 			// ISLAND MODE: Apply circular falloff if enabled
 			if (Params.Enable_Island_Mode)
 			{
@@ -299,6 +336,35 @@ public:
 			// 2D Noise SDF.-
 			v_flt Variable_7; // 2D Noise SDF.- output 0
 			Variable_7 = Variable_4 - Variable_0;
+			
+			// BEACH PLATEAU: Two-sided. Flattens terrain near the target height toward it.
+			// Works well with a small Height Range so it only affects the narrow shoreline band.
+			if (Params.Enable_Beach_Plateau)
+			{
+				v_flt TerrainHeight = Variable_0;
+				v_flt HeightDiff = FMath::Abs(TerrainHeight - v_flt(Params.Beach_Plateau_Target_Height));
+				v_flt BeachBlend = v_flt(1.0f) - FVoxelMathNodeFunctions::SmoothStep(v_flt(0.0f), v_flt(Params.Beach_Plateau_Height_Range), HeightDiff);
+				BeachBlend = FMath::Pow(BeachBlend, Params.Beach_Plateau_Blend_Strength);
+				Variable_7 = Variable_7 + BeachBlend * (Variable_0 - v_flt(Params.Beach_Plateau_Target_Height));
+			}
+			
+			// MOUNTAIN PLATEAU: One-sided. Only activates when terrain is ABOVE the target height.
+			// Pulls peaks DOWN toward the target. Never affects terrain below the target,
+			// so beaches and plains are completely untouched regardless of Height Range.
+			if (Params.Enable_Mountain_Plateau)
+			{
+				v_flt TerrainHeight = Variable_0;
+				if (TerrainHeight > v_flt(Params.Mountain_Plateau_Target_Height))
+				{
+					// How far above the target this terrain is (always positive here)
+					v_flt HeightAbove = TerrainHeight - v_flt(Params.Mountain_Plateau_Target_Height);
+					// Blend: 1.0 just above target, fading to 0.0 at HeightAbove == Range
+					v_flt MountainBlend = v_flt(1.0f) - FVoxelMathNodeFunctions::SmoothStep(v_flt(0.0f), v_flt(Params.Mountain_Plateau_Height_Range), HeightAbove);
+					MountainBlend = FMath::Pow(MountainBlend, Params.Mountain_Plateau_Blend_Strength);
+					// HeightAbove is always positive, so this always pushes terrain DOWN toward target
+					Variable_7 = Variable_7 + MountainBlend * HeightAbove;
+				}
+			}
 			
 			// ISLAND MODE: Apply circular falloff if enabled
 			if (Params.Enable_Island_Mode)
@@ -1001,7 +1067,15 @@ public:
 			Object.Enable_Island_Mode,
 			Object.Island_Radius,
 			Object.Island_Falloff_Distance,
-			Object.Island_Falloff_Strength
+			Object.Island_Falloff_Strength,
+			Object.Enable_Beach_Plateau,
+			Object.Beach_Plateau_Target_Height,
+			Object.Beach_Plateau_Height_Range,
+			Object.Beach_Plateau_Blend_Strength,
+			Object.Enable_Mountain_Plateau,
+			Object.Mountain_Plateau_Target_Height,
+			Object.Mountain_Plateau_Height_Range,
+			Object.Mountain_Plateau_Blend_Strength
 		})
 		, LocalValue(Params)
 		, LocalMaterial(Params)

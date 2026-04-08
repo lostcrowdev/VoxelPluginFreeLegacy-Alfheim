@@ -29,7 +29,8 @@ public class VoxelExamples : ModuleRules
                 "Voxel",
                 "Core",
                 "CoreUObject",
-                "Engine"
+                "Engine",
+                "ProceduralMeshComponent"
             }
         );
     }

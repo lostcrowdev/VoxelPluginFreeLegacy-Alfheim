@@ -79,6 +79,32 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Island Mode", meta=(DisplayName="Island Falloff Strength", ClampMin="0.1", ClampMax="5.0", EditCondition="Enable_Island_Mode", ToolTip="Controls transition sharpness (1.0 = linear, higher = sharper cliff)"))
     float Island_Falloff_Strength = 1.5f;
     
+    // Beach Plateau Parameters
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Beach Plateau", meta=(DisplayName="Enable Beach Plateau", ToolTip="Flattens terrain globally wherever its surface height falls within Beach_Plateau_Height_Range of Beach_Plateau_Target_Height. Works across the entire map, creating a beach shelf on every island shoreline."))
+    bool Enable_Beach_Plateau = false;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Beach Plateau", meta=(DisplayName="Beach Plateau Target Height", ToolTip="The world height the beach is flattened toward. Set this to your waterline height."))
+    float Beach_Plateau_Target_Height = 0.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Beach Plateau", meta=(DisplayName="Beach Plateau Height Range", ClampMin="1.0", ClampMax="500.0", ToolTip="How many units above and below the target height the flattening effect reaches. Terrain at exactly the target height is fully flattened; terrain beyond this range is unaffected."))
+    float Beach_Plateau_Height_Range = 40.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Beach Plateau", meta=(DisplayName="Beach Plateau Blend Strength", ClampMin="0.1", ClampMax="10.0", ToolTip="Controls how sharply terrain snaps to the plateau. 1.0 = gradual smooth blend; higher values produce a flatter, more shelf-like result."))
+    float Beach_Plateau_Blend_Strength = 2.0f;
+
+    // Mountain Plateau Parameters
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mountain Plateau", meta=(DisplayName="Enable Mountain Plateau", ToolTip="Caps terrain peaks above Mountain_Plateau_Target_Height, pulling them down to form a flat elevated plateau. Only affects terrain above the target height - never disturbs lower terrain or beaches."))
+    bool Enable_Mountain_Plateau = false;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mountain Plateau", meta=(DisplayName="Mountain Plateau Target Height", ToolTip="Peaks above this height get flattened down toward it. Should be set above Beach Plateau Target Height and above typical plains level."))
+    float Mountain_Plateau_Target_Height = 80.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mountain Plateau", meta=(DisplayName="Mountain Plateau Height Range", ClampMin="1.0", ClampMax="500.0", ToolTip="How far above the target height the flattening effect reaches. A peak that is Range units above the target is unaffected; peaks closer than Range get pulled down."))
+    float Mountain_Plateau_Height_Range = 40.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mountain Plateau", meta=(DisplayName="Mountain Plateau Blend Strength", ClampMin="0.1", ClampMax="10.0", ToolTip="Controls how sharply peaks snap to the plateau. 1.0 = gradual; higher values produce a flatter, more table-top result."))
+    float Mountain_Plateau_Blend_Strength = 2.0f;
+    
     // Material References -- Glitchy / not working
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Materials", meta=(DisplayName="Layer 0"))
     TSoftObjectPtr<UMaterialInterface> Layer_0 = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath("/Voxel/Examples/Shared/Textures/TextureHaven/AerialGrassRock/MI_AerialGrassRock.MI_AerialGrassRock"));
