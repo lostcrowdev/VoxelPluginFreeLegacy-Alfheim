@@ -30,7 +30,7 @@ void AVoxelMeshSpawnerActor::SetStaticMesh_Implementation(UStaticMesh* Mesh, con
 template <typename ParameterType>
 void GameThread_UpdateMIParameter(const UMaterialInstance* Instance, const ParameterType& Parameter)
 {
-	FMaterialInstanceResource* Resource = Instance->Resource;
+	UE_508_SWITCH(FMaterialInstanceResource, FMaterialInstanceRenderProxy)* Resource = UE_508_SWITCH(Instance->Resource, Instance->GetInstanceRenderProxy());
 	const FMaterialParameterInfo& ParameterInfo = Parameter.ParameterInfo;
 	typename ParameterType::ValueType Value = ParameterType::GetValue(Parameter);
 	ENQUEUE_RENDER_COMMAND(SetMIParameterValue)(

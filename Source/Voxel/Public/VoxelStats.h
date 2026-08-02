@@ -43,11 +43,11 @@ struct TStat_Voxel_Initializer
 	}
 };
 
-#define VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(Suffix) PREPROCESSOR_JOIN(PREPROCESSOR_JOIN(FStat_Voxel_, __LINE__), Suffix)
+#define VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(Suffix) VOXEL_PREPROCESSOR_JOIN(VOXEL_PREPROCESSOR_JOIN(FStat_Voxel_, __LINE__), Suffix)
 
 // We want to be able to use __FUNCTION__ as description, so it's a bit tricky
 #define VOXEL_SCOPE_COUNTER_IMPL_IMPL(StatGroup, Description) \
-	struct VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(PREPROCESSOR_NOTHING) : FStat_Voxel_Base \
+	struct VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(VOXEL_PREPROCESSOR_NOTHING) : FStat_Voxel_Base \
 	{ \
 		using TGroup = FStatGroup_##StatGroup; \
 		\
@@ -58,15 +58,15 @@ struct TStat_Voxel_Initializer
 		} \
 		static FORCEINLINE const char* GetStatName() \
 		{ \
-			return PREPROCESSOR_TO_STRING(VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(_Name)); \
+			return VOXEL_PREPROCESSOR_TO_STRING(VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(_Name)); \
 		} \
 		static FORCEINLINE const TCHAR* GetDescription() \
 		{ \
 			return *GetDescriptionRef(); \
 		} \
 	}; \
-	static FThreadSafeStaticStat<VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(PREPROCESSOR_NOTHING)> VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(_Ptr); \
-	static TStat_Voxel_Initializer<VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(PREPROCESSOR_NOTHING)> VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(_Initializer){ Description }; \
+	static FThreadSafeStaticStat<VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(VOXEL_PREPROCESSOR_NOTHING)> VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(_Ptr); \
+	static TStat_Voxel_Initializer<VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(VOXEL_PREPROCESSOR_NOTHING)> VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(_Initializer){ Description }; \
 	FScopeCycleCounter VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(_CycleCount)(VOXEL_SCOPE_COUNTER_STAT_CLASS_NAME(_Ptr.GetStatId()));
 
 #else
@@ -124,8 +124,8 @@ struct FVoxelMemoryCounterStaticRef
 	VOXEL_API FVoxelMemoryCounterStaticRef(const TCHAR* Name, const FVoxelMemoryCounterRef& Ref);
 };
 
-#define VOXEL_MEMORY_USAGE_COUNTER_NAME(StatName) PREPROCESSOR_JOIN(StatName, _MemoryUsage)
-#define VOXEL_MEMORY_PEAK_COUNTER_NAME(StatName) PREPROCESSOR_JOIN(StatName, _MemoryPeak)
+#define VOXEL_MEMORY_USAGE_COUNTER_NAME(StatName) VOXEL_PREPROCESSOR_JOIN(StatName, _MemoryUsage)
+#define VOXEL_MEMORY_PEAK_COUNTER_NAME(StatName) VOXEL_PREPROCESSOR_JOIN(StatName, _MemoryPeak)
 
 #define DECLARE_VOXEL_MEMORY_STAT(Name, StatName, Group, API) \
 	extern API FThreadSafeCounter64 VOXEL_MEMORY_USAGE_COUNTER_NAME(StatName); \

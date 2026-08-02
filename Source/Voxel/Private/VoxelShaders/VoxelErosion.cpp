@@ -237,7 +237,9 @@ void UVoxelErosion::Init_RenderThread(FRHICommandList& RHICmdList)
 
 	PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
-#if VOXEL_ENGINE_VERSION >= 505
+#if VOXEL_ENGINE_VERSION >= 508
+#define CREATE_UAV(Name) RHICmdList.CreateUnorderedAccessView(Name, FRHIViewDesc::CreateTextureUAV().SetDimensionFromTexture(Name))
+#elif VOXEL_ENGINE_VERSION >= 505
 #define CREATE_UAV(Name) RHICmdList.CreateUnorderedAccessView(Name)
 #else
 #define CREATE_UAV(Name) RHICreateUnorderedAccessView(Name)

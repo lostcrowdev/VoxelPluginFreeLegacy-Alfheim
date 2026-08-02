@@ -48,6 +48,18 @@
 #define UE_507_ONLY(...)
 #endif
 
+#if VOXEL_ENGINE_VERSION >= 508
+#define UE_508_SWITCH(Before, AfterOrEqual) AfterOrEqual
+#define UE_508_ONLY(...) __VA_ARGS__
+#else
+#define UE_508_SWITCH(Before, AfterOrEqual) Before
+#define UE_508_ONLY(...)
+#endif
+
+#define VOXEL_PREPROCESSOR_JOIN(A, B) UE_508_SWITCH(PREPROCESSOR_JOIN(A, B), UE_JOIN(A, B))
+#define VOXEL_PREPROCESSOR_TO_STRING(X) UE_508_SWITCH(PREPROCESSOR_TO_STRING(X), UE_STRINGIZE(X))
+#define VOXEL_PREPROCESSOR_NOTHING UE_508_SWITCH(PREPROCESSOR_NOTHING, UE_EMPTY)
+
 /**
  * To change a definition, add it to VoxelUserDefinitions.h
  */

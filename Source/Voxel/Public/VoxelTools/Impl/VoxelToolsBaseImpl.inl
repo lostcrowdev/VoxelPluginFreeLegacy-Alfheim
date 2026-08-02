@@ -21,8 +21,8 @@ struct VOXEL_API FScopeToolsTimeLogger
 	~FScopeToolsTimeLogger();
 };
 
-#define VOXEL_TOOL_FUNCTION_COUNTER(Num) FScopeToolsTimeLogger PREPROCESSOR_JOIN(EditCounter, __LINE__)(__FUNCTION__, Num); VOXEL_ASYNC_FUNCTION_COUNTER()
-#define VOXEL_TOOL_SCOPE_COUNTER(Name, Num) FScopeToolsTimeLogger PREPROCESSOR_JOIN(EditCounter, __LINE__)(Name, Num); VOXEL_ASYNC_SCOPE_COUNTER(Name)
+#define VOXEL_TOOL_FUNCTION_COUNTER(Num) FScopeToolsTimeLogger VOXEL_PREPROCESSOR_JOIN(EditCounter, __LINE__)(__FUNCTION__, Num); VOXEL_ASYNC_FUNCTION_COUNTER()
+#define VOXEL_TOOL_SCOPE_COUNTER(Name, Num) FScopeToolsTimeLogger VOXEL_PREPROCESSOR_JOIN(EditCounter, __LINE__)(Name, Num); VOXEL_ASYNC_SCOPE_COUNTER(Name)
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////

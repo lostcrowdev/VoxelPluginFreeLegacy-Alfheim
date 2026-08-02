@@ -50,7 +50,6 @@ public class Voxel : ModuleRules
                 "Networking",
                 "Sockets",
                 "RHI",
-                "PCG",
 #if UE_4_23_OR_LATER
                 "PhysicsCore",
 #endif

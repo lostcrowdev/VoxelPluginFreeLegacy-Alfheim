@@ -114,7 +114,12 @@ public:
 
 public:
 	// IBaseDelegateInstance interface
-#if VOXEL_ENGINE_VERSION >= 503
+#if VOXEL_ENGINE_VERSION >= 508
+	virtual void CreateCopy(const FPrivateDelegateAllocation& Target) const final override
+	{
+		new (Target) ThisType(*this);
+	}
+#elif VOXEL_ENGINE_VERSION >= 503
 	virtual void CreateCopy(TDelegateBase<FThreadSafeDelegateMode>& Base) const final override
 	{
 		FVoxelDelegateUtilities::CreateDelegateInstance(Base, *this);

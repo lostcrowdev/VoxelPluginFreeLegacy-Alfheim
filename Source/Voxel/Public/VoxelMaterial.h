@@ -146,8 +146,8 @@ public:
 	template<typename X> \
 	FORCEINLINE void Set##Name(X New##Name) \
 	{ \
-		static_assert(!std::is_same_v<X, float>, PREPROCESSOR_TO_STRING(Set##Name) ": need to use " PREPROCESSOR_TO_STRING(Set##Name##_AsFloat)); \
-		static_assert(std::is_same_v<X, float>, PREPROCESSOR_TO_STRING(Set##Name) ": need to cast to float, uint8 or int32"); \
+		static_assert(!std::is_same_v<X, float>, VOXEL_PREPROCESSOR_TO_STRING(Set##Name) ": need to use " VOXEL_PREPROCESSOR_TO_STRING(Set##Name##_AsFloat)); \
+		static_assert(std::is_same_v<X, float>, VOXEL_PREPROCESSOR_TO_STRING(Set##Name) ": need to cast to float, uint8 or int32"); \
 	} \
 	FORCEINLINE uint8 Get##Name() const { return static_cast<const T&>(*this).Impl_Get##Name(); } \
 	FORCEINLINE float Get##Name##_AsFloat() const { return FVoxelUtilities::UINT8ToFloat(static_cast<const T&>(*this).Impl_Get##Name()); }
@@ -207,8 +207,8 @@ public:
 	template<typename X> \
 	FORCEINLINE void Set##Name(X New##Name) \
 	{ \
-		static_assert(!std::is_same_v<X, float>, PREPROCESSOR_TO_STRING(Set##Name) ": need to use " PREPROCESSOR_TO_STRING(Set##Name##_AsFloat)); \
-		static_assert(std::is_same_v<X, float>, PREPROCESSOR_TO_STRING(Set##Name) ": need to cast to float, uint8 or int32"); \
+		static_assert(!std::is_same_v<X, float>, VOXEL_PREPROCESSOR_TO_STRING(Set##Name) ": need to use " VOXEL_PREPROCESSOR_TO_STRING(Set##Name##_AsFloat)); \
+		static_assert(std::is_same_v<X, float>, VOXEL_PREPROCESSOR_TO_STRING(Set##Name) ": need to cast to float, uint8 or int32"); \
 	} \
 	FORCEINLINE uint8 Get##Name() const { return Get##Forward(); } \
 	FORCEINLINE float Get##Name##_AsFloat() const { return Get##Forward##_AsFloat(); }
