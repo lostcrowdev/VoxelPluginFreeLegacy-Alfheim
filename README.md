@@ -7,8 +7,7 @@
 ---
 
 ## Requirements:
-- Unreal Engine 5.7.3.
-  - UE 5.6 and other version of 5.7 may work, but are untested.
+- Unreal Engine 5.8.0
 
 ---
 
