@@ -50,6 +50,7 @@ public class Voxel : ModuleRules
                 "Networking",
                 "Sockets",
                 "RHI",
+                "PCG",
 #if UE_4_23_OR_LATER
                 "PhysicsCore",
 #endif
@@ -69,7 +70,7 @@ public class Voxel : ModuleRules
                 "HTTP",
                 "Projects",
                 "Slate",
-                "SlateCore",
+                "SlateCore", "ProceduralMeshComponent",
                 //"VHACD", // Not used, too slow
             }
         );

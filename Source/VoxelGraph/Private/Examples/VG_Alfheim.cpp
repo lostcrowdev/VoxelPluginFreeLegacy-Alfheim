@@ -1,4 +1,4 @@
-﻿// Alfheim terrain generator - island with mountain and ocean terracing.
+// Alfheim terrain generator - island with mountain and ocean terracing.
 
 #include "VG_Alfheim.h"
 
