@@ -19,7 +19,6 @@ enum class EAlfheimGenerationState : uint8
     Error               UMETA(DisplayName = "Error")
 };
 
-
 USTRUCT(BlueprintType)
 struct FAlfheimEditEntry
 {
@@ -27,7 +26,7 @@ struct FAlfheimEditEntry
 
     UPROPERTY(BlueprintReadWrite, Category = "Alfheim")
     float BrushSize = 0.f;
-    
+
     UPROPERTY(BlueprintReadWrite, Category = "Alfheim")
     FIntVector Position = FIntVector::ZeroValue;
 
@@ -58,14 +57,14 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Alfheim|References",
         meta = (DisplayName = "PCG Actor"))
     TObjectPtr<AActor> PCGActor;
-    
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Alfheim|Settings")
     int32 AlfheimSeed = 1337;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Alfheim|Settings",
         meta = (DisplayName = "Randomize Seed on Generate"))
     bool bRandomizeSeedOnGenerate = false;
-    
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Alfheim|Settings|Startup",
         meta = (DisplayName = "Generate New Map On Begin Play"))
     bool bGenerateOnBeginPlay = false;
@@ -73,10 +72,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Alfheim|Settings|Startup",
         meta = (DisplayName = "Randomize Seed On Begin Play", EditCondition = "bGenerateOnBeginPlay"))
     bool bRandomizeSeedOnBeginPlay = true;
-    
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Alfheim|Settings",
-        meta = (ClampMin = 0.f, DisplayName = "Voxel Settle Delay (seconds)"))
-    float VoxelSettleDelay = 3.0f;
+        meta = (ClampMin = 0.f, DisplayName = "Post-Load Settle Buffer (seconds)"))
+    float VoxelSettleDelay = 0.1f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Alfheim|Settings",
         meta = (DisplayName = "Auto-Generate Splines"))
@@ -85,22 +84,22 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Alfheim|Settings",
         meta = (DisplayName = "Auto-Generate PCG"))
     bool bAutoGeneratePCG = true;
-    
+
     UFUNCTION(BlueprintCallable, Category = "Alfheim|Settings")
     void SetSeed(int32 NewSeed);
-    
+
     UFUNCTION(BlueprintCallable, Category = "Alfheim|Settings")
     void SetVoxelSettleDelay(float NewDelay);
-    
+
     UFUNCTION(BlueprintCallable, Category = "Alfheim|Settings")
     void SetRandomizeSeedOnGenerate(bool bEnabled);
-    
+
     UFUNCTION(BlueprintCallable, Category = "Alfheim|Settings")
     void SetAutoGenerateSplines(bool bEnabled);
-    
+
     UFUNCTION(BlueprintCallable, Category = "Alfheim|Settings")
     void SetAutoGeneratePCG(bool bEnabled);
-    
+
     UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Alfheim|State")
     EAlfheimGenerationState GenerationState = EAlfheimGenerationState::Idle;
 
@@ -115,7 +114,7 @@ public:
 
     UPROPERTY(BlueprintAssignable, Category = "Alfheim|Events")
     FOnAlfheimPipelineComplete OnPipelineComplete;
-    
+
     UFUNCTION(BlueprintCallable, CallInEditor, Category = "Alfheim")
     void Generate();
 
@@ -124,7 +123,7 @@ public:
 
     UFUNCTION(BlueprintCallable, CallInEditor, Category = "Alfheim", meta = (DisplayName = "Randomize Seed"))
     void RandomizeSeed();
-    
+
     UFUNCTION(BlueprintCallable, Category = "Alfheim|Stages")
     void RegenerateVoxelWorld();
 
@@ -133,7 +132,7 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Alfheim|Stages")
     void RegeneratePCG();
-    
+
     UFUNCTION(BlueprintPure, Category = "Alfheim")
     bool IsIdle() const
     {
@@ -153,16 +152,16 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Alfheim|Multiplayer", meta = (ClampMin = 1))
     int32 EditBufferSize = 64;
-    
+
     UPROPERTY(Replicated, BlueprintReadOnly, Category = "Alfheim|Multiplayer")
     TArray<FAlfheimEditEntry> EditBuffer;
-    
+
     UPROPERTY(Replicated, BlueprintReadOnly, Category = "Alfheim|Multiplayer")
     int32 EditBufferIndex = 0;
 
     UPROPERTY(BlueprintReadOnly, Category = "Alfheim|Multiplayer")
     int32 LastSyncBufferIndex = 0;
-    
+
     UFUNCTION(BlueprintNativeEvent, Category = "Alfheim|Multiplayer")
     void AddEdit(float BrushSize, FVector Position, FVector Normal, bool bAlternativeMode);
     virtual void AddEdit_Implementation(float BrushSize, FVector Position, FVector Normal, bool bAlternativeMode);
@@ -187,12 +186,24 @@ protected:
 private:
 
     FTimerHandle VoxelSettleTimerHandle;
+    FDelegateHandle PCGCleanedHandle;
+    FDelegateHandle PCGGeneratedHandle;
     bool bFullPipelineRunning = false;
-    
+    bool bVoxelStageInFlight = false;
+    bool bSplinesStageInFlight = false;
+    bool bPCGStageInFlight = false;
+
     UPROPERTY(Transient)
     TObjectPtr<UObject> CachedVoxelGenerator;
 
-    void StartVoxelSettleTimer();
+    UFUNCTION()
+    void HandleVoxelWorldLoaded();
+
+    void HandlePCGCleaned(UPCGComponent* Component);
+    void HandlePCGGenerated(UPCGComponent* Component);
+
+    void UnbindAllGenerationDelegates();
+
     void OnVoxelSettleComplete();
     void LogAndDisplay(const FString& Msg, bool bWarning = false) const;
 };

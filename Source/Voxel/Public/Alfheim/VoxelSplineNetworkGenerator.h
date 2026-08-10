@@ -88,7 +88,7 @@ public:
 	AVoxelSplineNetworkGenerator();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxel Network|Runtime")
-	bool bGenerateOnBeginPlay = true;
+	bool bGenerateOnBeginPlay = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxel Network|Runtime",
 		meta = (ClampMin = 0.f, DisplayName = "Generation Delay (seconds)"))

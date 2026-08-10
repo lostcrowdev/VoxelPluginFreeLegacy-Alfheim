@@ -61,6 +61,7 @@ void AAlfheimVoxelWorld::BeginPlay()
 
 void AAlfheimVoxelWorld::Destroyed()
 {
+    UnbindAllGenerationDelegates();
     if (VoxelSettleTimerHandle.IsValid())
         GetWorldTimerManager().ClearTimer(VoxelSettleTimerHandle);
     Super::Destroyed();
@@ -101,23 +102,27 @@ void AAlfheimVoxelWorld::Generate()
     }
 
     LogAndDisplay(FString::Printf(
-        TEXT("AlfheimVoxelWorld: Pipeline start | Seed=%d | Delay=%.2fs"), AlfheimSeed, VoxelSettleDelay));
+        TEXT("AlfheimVoxelWorld: Pipeline start | Seed=%d"), AlfheimSeed));
 
     bFullPipelineRunning = true;
     GenerationState      = EAlfheimGenerationState::RegeneratingVoxel;
 
     ApplySeedToTargets();
     RegenerateVoxelWorld();
-    StartVoxelSettleTimer();
 }
 
 void AAlfheimVoxelWorld::Clear()
 {
+    UnbindAllGenerationDelegates();
+
     if (VoxelSettleTimerHandle.IsValid())
         GetWorldTimerManager().ClearTimer(VoxelSettleTimerHandle);
 
-    bFullPipelineRunning = false;
-    GenerationState      = EAlfheimGenerationState::Idle;
+    bFullPipelineRunning  = false;
+    bVoxelStageInFlight   = false;
+    bSplinesStageInFlight = false;
+    bPCGStageInFlight     = false;
+    GenerationState       = EAlfheimGenerationState::Idle;
 
     if (SplineGenerator)
     {
@@ -199,67 +204,46 @@ void AAlfheimVoxelWorld::SetAutoGeneratePCG(bool bEnabled)
 
 void AAlfheimVoxelWorld::RegenerateVoxelWorld()
 {
-    if (IsCreated())
-        DestroyWorld();
-
-    CreateWorld();
-
-    LogAndDisplay(FString::Printf(
-        TEXT("AlfheimVoxelWorld: CreateWorld() called (Seed=%d). Waiting %.2fs..."),
-        AlfheimSeed, VoxelSettleDelay));
-
-    OnVoxelWorldRecreated.Broadcast();
-}
-
-void AAlfheimVoxelWorld::RegenerateSplines()
-{
-    if (!SplineGenerator)
+    if (bVoxelStageInFlight)
     {
-        LogAndDisplay(TEXT("AlfheimVoxelWorld: SplineGenerator null."), true);
+        LogAndDisplay(TEXT("AlfheimVoxelWorld: Voxel stage already running — ignored."), true);
         return;
     }
+    bVoxelStageInFlight = true;
 
-    GenerationState = EAlfheimGenerationState::GeneratingSplines;
-    LogAndDisplay(TEXT("AlfheimVoxelWorld: Generating splines..."));
-
-    SplineGenerator->GenerateNetworkDelayed();
-    OnSplinesComplete.Broadcast();
-}
-
-void AAlfheimVoxelWorld::RegeneratePCG()
-{
-    UPCGComponent* PCGComp = ResolvePCGComponent();
-    if (!PCGComp)
-    {
-        LogAndDisplay(TEXT("AlfheimVoxelWorld: No PCGComponent found — skipping."), true);
-        GenerationState = EAlfheimGenerationState::Complete;
-        return;
-    }
-
-    GenerationState = EAlfheimGenerationState::GeneratingPCG;
-    
-    LogAndDisplay(TEXT("AlfheimVoxelWorld: PCG Cleanup()..."));
-    PCGComp->Cleanup(/*bRemoveComponents=*/true);
-
-    LogAndDisplay(TEXT("AlfheimVoxelWorld: PCG Generate()..."));
-    PCGComp->Generate(/*bForce=*/true);
-    LogAndDisplay(TEXT("AlfheimVoxelWorld: PCG triggered."));
-    OnPCGComplete.Broadcast();
-}
-
-UPCGComponent* AAlfheimVoxelWorld::ResolvePCGComponent() const
-{
-    return PCGActor ? PCGActor->FindComponentByClass<UPCGComponent>() : nullptr;
-}
-
-void AAlfheimVoxelWorld::StartVoxelSettleTimer()
-{
     if (VoxelSettleTimerHandle.IsValid())
         GetWorldTimerManager().ClearTimer(VoxelSettleTimerHandle);
 
-    GenerationState = EAlfheimGenerationState::WaitingForVoxel;
+    if (IsCreated())
+        DestroyWorld();
 
-    if (VoxelSettleDelay <= 0.f) { OnVoxelSettleComplete(); return; }
+    OnWorldLoaded.RemoveDynamic(this, &AAlfheimVoxelWorld::HandleVoxelWorldLoaded);
+    OnWorldLoaded.AddDynamic(this, &AAlfheimVoxelWorld::HandleVoxelWorldLoaded);
+
+    GenerationState = EAlfheimGenerationState::WaitingForVoxel;
+    CreateWorld();
+
+    LogAndDisplay(FString::Printf(
+        TEXT("AlfheimVoxelWorld: CreateWorld() called (Seed=%d). Waiting for OnWorldLoaded..."), AlfheimSeed));
+
+    OnVoxelWorldRecreated.Broadcast();
+
+    if (IsLoaded())
+        HandleVoxelWorldLoaded();
+}
+
+void AAlfheimVoxelWorld::HandleVoxelWorldLoaded()
+{
+    OnWorldLoaded.RemoveDynamic(this, &AAlfheimVoxelWorld::HandleVoxelWorldLoaded);
+    bVoxelStageInFlight = false;
+
+    LogAndDisplay(TEXT("AlfheimVoxelWorld: Voxel world confirmed loaded (collision included)."));
+
+    if (VoxelSettleDelay <= 0.f)
+    {
+        OnVoxelSettleComplete();
+        return;
+    }
 
     GetWorldTimerManager().SetTimer(
         VoxelSettleTimerHandle, this,
@@ -267,16 +251,127 @@ void AAlfheimVoxelWorld::StartVoxelSettleTimer()
         VoxelSettleDelay, /*bLoop=*/false);
 }
 
-void AAlfheimVoxelWorld::OnVoxelSettleComplete()
+void AAlfheimVoxelWorld::RegenerateSplines()
 {
-    LogAndDisplay(FString::Printf(TEXT("AlfheimVoxelWorld: Settle complete (%.2fs)."), VoxelSettleDelay));
+    if (bSplinesStageInFlight)
+    {
+        LogAndDisplay(TEXT("AlfheimVoxelWorld: Splines stage already running — ignored."), true);
+        return;
+    }
 
-    if (bFullPipelineRunning && bAutoGenerateSplines) RegenerateSplines();
-    if (bFullPipelineRunning && bAutoGeneratePCG)     RegeneratePCG();
+    if (!SplineGenerator)
+    {
+        LogAndDisplay(TEXT("AlfheimVoxelWorld: SplineGenerator null."), true);
+        return;
+    }
+
+    bSplinesStageInFlight = true;
+    GenerationState = EAlfheimGenerationState::GeneratingSplines;
+    LogAndDisplay(TEXT("AlfheimVoxelWorld: Generating splines..."));
+
+    SplineGenerator->GenerateNetwork();
+
+    bSplinesStageInFlight = false;
+    OnSplinesComplete.Broadcast();
+}
+
+void AAlfheimVoxelWorld::RegeneratePCG()
+{
+    if (bPCGStageInFlight)
+    {
+        LogAndDisplay(TEXT("AlfheimVoxelWorld: PCG stage already running — ignored."), true);
+        return;
+    }
+
+    UPCGComponent* PCGComp = ResolvePCGComponent();
+    if (!PCGComp)
+    {
+        LogAndDisplay(TEXT("AlfheimVoxelWorld: No PCGComponent found — skipping."), true);
+        GenerationState      = EAlfheimGenerationState::Complete;
+        bFullPipelineRunning = false;
+        OnPCGComplete.Broadcast();
+        OnPipelineComplete.Broadcast();
+        return;
+    }
+
+    bPCGStageInFlight = true;
+    GenerationState = EAlfheimGenerationState::GeneratingPCG;
+
+    PCGComp->OnPCGGraphCleanedDelegate.Remove(PCGCleanedHandle);
+    PCGComp->OnPCGGraphGeneratedDelegate.Remove(PCGGeneratedHandle);
+
+    PCGCleanedHandle = PCGComp->OnPCGGraphCleanedDelegate.AddUObject(
+        this, &AAlfheimVoxelWorld::HandlePCGCleaned);
+
+    LogAndDisplay(TEXT("AlfheimVoxelWorld: PCG Cleanup()..."));
+    PCGComp->Cleanup(/*bRemoveComponents=*/true);
+}
+
+void AAlfheimVoxelWorld::HandlePCGCleaned(UPCGComponent* Component)
+{
+    Component->OnPCGGraphCleanedDelegate.Remove(PCGCleanedHandle);
+    PCGCleanedHandle.Reset();
+
+    LogAndDisplay(TEXT("AlfheimVoxelWorld: PCG cleanup confirmed. PCG Generate()..."));
+
+    PCGGeneratedHandle = Component->OnPCGGraphGeneratedDelegate.AddUObject(
+        this, &AAlfheimVoxelWorld::HandlePCGGenerated);
+
+    Component->Generate(/*bForce=*/true);
+}
+
+void AAlfheimVoxelWorld::HandlePCGGenerated(UPCGComponent* Component)
+{
+    Component->OnPCGGraphGeneratedDelegate.Remove(PCGGeneratedHandle);
+    PCGGeneratedHandle.Reset();
+    bPCGStageInFlight = false;
+
+    LogAndDisplay(TEXT("AlfheimVoxelWorld: PCG generation confirmed complete."));
+    OnPCGComplete.Broadcast();
 
     GenerationState      = EAlfheimGenerationState::Complete;
     bFullPipelineRunning = false;
+    LogAndDisplay(TEXT("AlfheimVoxelWorld: Pipeline complete."));
+    OnPipelineComplete.Broadcast();
+}
 
+UPCGComponent* AAlfheimVoxelWorld::ResolvePCGComponent() const
+{
+    return PCGActor ? PCGActor->FindComponentByClass<UPCGComponent>() : nullptr;
+}
+
+void AAlfheimVoxelWorld::UnbindAllGenerationDelegates()
+{
+    OnWorldLoaded.RemoveDynamic(this, &AAlfheimVoxelWorld::HandleVoxelWorldLoaded);
+
+    if (UPCGComponent* PCGComp = ResolvePCGComponent())
+    {
+        PCGComp->OnPCGGraphCleanedDelegate.Remove(PCGCleanedHandle);
+        PCGComp->OnPCGGraphGeneratedDelegate.Remove(PCGGeneratedHandle);
+    }
+    PCGCleanedHandle.Reset();
+    PCGGeneratedHandle.Reset();
+
+    bVoxelStageInFlight   = false;
+    bSplinesStageInFlight = false;
+    bPCGStageInFlight     = false;
+}
+
+void AAlfheimVoxelWorld::OnVoxelSettleComplete()
+{
+    LogAndDisplay(TEXT("AlfheimVoxelWorld: Voxel stage complete."));
+
+    if (bFullPipelineRunning && bAutoGenerateSplines)
+        RegenerateSplines();
+
+    if (bFullPipelineRunning && bAutoGeneratePCG)
+    {
+        RegeneratePCG();
+        return;
+    }
+
+    GenerationState      = EAlfheimGenerationState::Complete;
+    bFullPipelineRunning = false;
     LogAndDisplay(TEXT("AlfheimVoxelWorld: Pipeline complete."));
     OnPipelineComplete.Broadcast();
 }
@@ -309,7 +404,7 @@ void AAlfheimVoxelWorld::AddEdit_Implementation(float BrushSize, FVector Positio
     Entry.Normal = FIntVector(
         FMath::TruncToInt(ScaledNorm.X), FMath::TruncToInt(ScaledNorm.Y), FMath::TruncToInt(ScaledNorm.Z));
     Entry.bAlternativeMode = bAlternativeMode;
-    
+
     if (EditBufferIndex - LastSyncBufferIndex >= EditBufferSize)
     {
         LogAndDisplay(TEXT("AlfheimVoxelWorld: Circular Buffer Overflow! Need to increase EditBufferSize"), true);
