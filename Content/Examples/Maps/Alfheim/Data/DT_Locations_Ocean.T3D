@@ -1,0 +1,9 @@
+Begin Object Class=/Script/Engine.DataTable Name="DT_Locations_Ocean" ExportPath="/Script/Engine.DataTable'/Voxel/Examples/Maps/Alfheim/Data/DT_Locations_Ocean.DT_Locations_Ocean'"
+   Begin Object Class=/Script/Engine.AssetImportData Name="AssetImportData" ExportPath="/Script/Engine.AssetImportData'/Voxel/Examples/Maps/Alfheim/Data/DT_Locations_Ocean.DT_Locations_Ocean:AssetImportData'"
+   End Object
+   Begin Object Name="AssetImportData" ExportPath="/Script/Engine.AssetImportData'/Voxel/Examples/Maps/Alfheim/Data/DT_Locations_Ocean.DT_Locations_Ocean:AssetImportData'"
+   End Object
+   RowStruct="/Script/CoreUObject.ScriptStruct'/Script/VoxelExamples.VoxelLocationRow'"
+   AssetImportData="/Script/Engine.AssetImportData'AssetImportData'"
+   RowStructPathName="/Script/VoxelExamples.VoxelLocationRow"
+End Object
